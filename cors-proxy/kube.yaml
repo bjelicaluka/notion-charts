@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cors-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cors-proxy
+  template:
+    metadata:
+      labels:
+        app: cors-proxy
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: cors-proxy
+          image: cr.bjelicaluka.com/cors-proxy
+          imagePullPolicy: Always
+          env:
+            - name: PORT
+              value: "80"
+          resources:
+            requests:
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cors-proxy
+spec:
+  selector:
+    app: cors-proxy
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: "networking.k8s.io/v1"
+kind: Ingress
+metadata:
+  name: cors-proxy-ingress
+  annotations:
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # cert-manager.io/cluster-issuer: "letsencrypt-staging"
+spec:
+  rules:
+    - host: cors.bjelicaluka.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cors-proxy
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - cors.bjelicaluka.com
+      # secretName: cors-staging-tls
+      secretName: cors-prod-tls

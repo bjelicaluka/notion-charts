@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { NumberProperty, TitleProperty, getNotionDatabase } from "./notion-api";
+import {
+  NumberProperty,
+  TitleProperty,
+  getNotionDatabase,
+  initNotionClient,
+} from "./notion-api";
 import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
@@ -17,6 +22,14 @@ export function App() {
     setDatasets({});
 
     const queryParams = new URLSearchParams(window.location.search);
+    const auth = queryParams.get("auth");
+    if (!auth) {
+      setErrorMessage("Missing auth token");
+      setIsLoading(false);
+      return;
+    }
+
+    initNotionClient(auth);
 
     const databaseId = queryParams.get("databaseId");
 

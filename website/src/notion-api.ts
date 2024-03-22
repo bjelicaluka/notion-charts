@@ -1,11 +1,17 @@
 import { Client } from "@notionhq/client";
 
-const notionSecret = "secret_oIzRBRUA2AeuLxrZyCXuZ88hY7rY5A9BO4blWsHMteh";
+let notion: Client = null;
 
-const notion = new Client({
-  auth: notionSecret,
-  baseUrl: "http://localhost:8080/https://api.notion.com",
-});
+const corsProxy = "https://corsproxy.io";
+
+const notionApi = "https://api.notion.com";
+
+export function initNotionClient(auth: string) {
+  notion = new Client({
+    auth: auth,
+    baseUrl: `${corsProxy}/?` + encodeURIComponent(notionApi),
+  });
+}
 
 export type MultiSelectProperty = {
   type: "multi_select";
